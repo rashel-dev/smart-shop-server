@@ -33,6 +33,7 @@ async function run() {
         const database = client.db(`${process.env.DB_NAME}`);
         const productsCollection = database.collection("products");
 
+        // Get all products
         app.get("/products", async (req, res) => {
             try {
                 const cursor = productsCollection.find({});
@@ -59,6 +60,24 @@ async function run() {
             } catch (error) {
                 console.error("Error fetching product:", error);
                 res.status(500).json({ error: "Failed to fetch product" });
+            }
+        });
+
+        // Add new product
+        app.post("/products", async (req, res) => {
+            try {
+                const product = req.body;
+
+                // Validate required fields
+                if (!product.title || !product.price || !product.category) {
+                    return res.status(400).json({ error: "Missing required fields" });
+                }
+
+                const result = await productsCollection.insertOne(product);
+                res.status(201).json(result);
+            } catch (error) {
+                console.error("Error adding product:", error);
+                res.status(500).json({ error: "Failed to add product" });
             }
         });
 
