@@ -45,6 +45,19 @@ async function run() {
             }
         });
 
+        // Get products by user email (must come before /:id)
+        app.get("/products/user/:email", async (req, res) => {
+            try {
+                const email = req.params.email;
+                const query = { userEmail: email };
+                const products = await productsCollection.find(query).toArray();
+                res.send(products);
+            } catch (error) {
+                console.error("Error fetching user products:", error);
+                res.status(500).json({ error: "Failed to fetch user products" });
+            }
+        });
+
         // Get single product by ID
         app.get("/products/:id", async (req, res) => {
             try {
@@ -78,6 +91,24 @@ async function run() {
             } catch (error) {
                 console.error("Error adding product:", error);
                 res.status(500).json({ error: "Failed to add product" });
+            }
+        });
+
+        // Delete product by ID
+        app.delete("/products/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const query = { _id: new ObjectId(id) };
+                const result = await productsCollection.deleteOne(query);
+
+                if (result.deletedCount === 0) {
+                    return res.status(404).json({ error: "Product not found" });
+                }
+
+                res.json({ message: "Product deleted successfully", deletedCount: result.deletedCount });
+            } catch (error) {
+                console.error("Error deleting product:", error);
+                res.status(500).json({ error: "Failed to delete product" });
             }
         });
 
