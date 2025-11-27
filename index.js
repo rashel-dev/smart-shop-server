@@ -33,10 +33,17 @@ async function run() {
         const database = client.db(`${process.env.DB_NAME}`);
         const productsCollection = database.collection("products");
 
-        // Get all products
+        // Get all products with optional search
         app.get("/products", async (req, res) => {
             try {
-                const cursor = productsCollection.find({});
+                const search = req.query.search;
+                let query = {};
+                if (search) {
+                    query = {
+                        $or: [{ title: { $regex: search, $options: "i" } }, { brand: { $regex: search, $options: "i" } }, { category: { $regex: search, $options: "i" } }],
+                    };
+                }
+                const cursor = productsCollection.find(query);
                 const products = await cursor.toArray();
                 res.send(products);
             } catch (error) {
