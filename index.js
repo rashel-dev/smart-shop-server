@@ -2,8 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
-
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const port = process.env.PORT || 5000;
 
@@ -45,7 +44,23 @@ async function run() {
             }
         });
 
-        
+        // Get single product by ID
+        app.get("/products/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const query = { _id: new ObjectId(id) };
+                const product = await productsCollection.findOne(query);
+
+                if (!product) {
+                    return res.status(404).json({ error: "Product not found" });
+                }
+
+                res.send(product);
+            } catch (error) {
+                console.error("Error fetching product:", error);
+                res.status(500).json({ error: "Failed to fetch product" });
+            }
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
@@ -56,7 +71,6 @@ async function run() {
     }
 }
 run().catch(console.dir);
-
 
 app.listen(port, () => {
     console.log(`Smart Shop BD is running on port ${port}`);
